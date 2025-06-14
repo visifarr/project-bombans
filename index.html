@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Дневник Настроений</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+    }
+    :root {
+      --bg: #fff;
+      --text: #111;
+      --accent-color: #0077ff;
+    }
+    body.dark {
+      --bg: #111;
+      --text: #eee;
+      --accent-color: #00ccff;
+    }
+    header, footer {
+      padding: 1em;
+      background: var(--accent-color);
+      color: white;
+      text-align: center;
+    }
+    main {
+      padding: 1em;
+      max-width: 600px;
+      margin: auto;
+    }
+    .log-entry {
+      background: rgba(255, 255, 255, 0.1);
+      border-left: 4px solid var(--accent-color);
+      padding: 0.5em;
+      margin: 0.5em 0;
+    }
+    input, textarea, button, select {
+      width: 100%;
+      padding: 0.5em;
+      margin: 0.5em 0;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📘 Дневник Настроений Онлайн</h1>
+    <button onclick="toggleTheme()">Сменить тему</button>
+  </header>
+  <main>
+    <div id="login">
+      <input id="username" placeholder="Имя пользователя" />
+      <button onclick="login()">Войти</button>
+    </div>
+    <div id="app" style="display: none">
+      <h2>Добро пожаловать, <span id="userDisplay"></span></h2>
+      <p id="quote"></p>
+      <input id="entryTitle" placeholder="Заголовок работы (необязательно)" />
+      <input id="entryImage" placeholder="Ссылка на изображение (необязательно)" />
+      <select id="mood">
+        <option value="">Настроение (необязательно)</option>
+        <option>😊 Радость</option>
+        <option>😢 Грусть</option>
+        <option>😡 Злость</option>
+        <option>😌 Спокойствие</option>
+        <option>😶 Отрешённость</option>
+      </select>
+      <textarea id="entry" placeholder="Поделись своими мыслями..."></textarea>
+      <label><input type="checkbox" id="publish" /> Показать другим</label>
+      <button onclick="saveEntry()">Сохранить</button>
+      <div id="entries"></div>
+    </div>
+    <hr />
+    <h2>🌐 Публичные записи</h2>
+    <div id="public"></div>
+  </main>
+  <footer>
+    &copy; 2025 — Твой безопасный уголок
+  </footer>
+  <script>
+    const quotes = [
+      'Каждый день — это новая страница твоей истории.',
+      'Пиши так, будто никто не читает. Это и есть свобода.',
+      'Ты важен. То, что ты чувствуешь — важно.',
+      'Иногда простая мысль может изменить всё.',
+      'Будь честен с собой — здесь тебе можно всё.',
+      'Твоя искренность — твоя сила.',
+      'Записывая мысли, ты делаешь их настоящими.',
+      'Слова лечат. Не бойся писать правду.',
+      'Этот дневник — твоя территория безопасности.',
+      'Ты не обязан быть идеальным, чтобы быть услышанным.',
+      'Даже тишина может стать содержанием.',
+      'Здесь не нужно притворяться — только быть.',
+      'Ты не один. Ты есть у себя.',
+      'Самые глубокие разговоры происходят с самим собой.',
+      'Дневник — это зеркало души.',
+      'Невысказанное — не значит несуществующее.',
+      'Твои чувства — это не слабость, а доказательство жизни.',
+      'Порой достаточно просто записать, чтобы стало легче.',
+      'Слова могут быть хрупкими. Но и сильными тоже.',
+      'Иногда лучший собеседник — это страница.',
+      'Прошлое нельзя изменить, но можно переосмыслить.',
+      'Мысли, которые записаны, теряют власть над тобой.',
+      'Уважай себя настолько, чтобы выговариваться.',
+      'Этот текст — путь к внутреннему покою.',
+      'Слово за словом — и ты уже дальше, чем был.',
+      'Ты имеешь право быть услышанным. Даже самим собой.',
+      'Заметки о себе — это инвестиции в осознанность.',
+      'Ты строишь мост между прошлым и настоящим.',
+      'Честность здесь — твоя суперспособность.',
+      'Каждая запись — это шаг к пониманию себя.'
+    ];
+
+    let username = '';
+
+    function login() {
+      username = document.getElementById('username').value.trim();
+      if (username) {
+        document.getElementById('userDisplay').textContent = username;
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('quote').textContent =
+          quotes[Math.floor(Math.random() * quotes.length)];
+        loadEntries();
+        loadPublic();
+      }
+    }
+
+    function saveEntry() {
+      const text = document.getElementById('entry').value.trim();
+      const pub = document.getElementById('publish').checked;
+      const title = document.getElementById('entryTitle').value.trim();
+      const image = document.getElementById('entryImage').value.trim();
+      const mood = document.getElementById('mood').value;
+      if (!text) return;
+      const log = {
+        user: username,
+        text,
+        pub,
+        title,
+        image,
+        mood,
+        time: new Date().toISOString()
+      };
+      const logs = JSON.parse(localStorage.getItem('logs') || '[]');
+      logs.push(log);
+      localStorage.setItem('logs', JSON.stringify(logs));
+      document.getElementById('entry').value = '';
+      document.getElementById('publish').checked = false;
+      document.getElementById('entryTitle').value = '';
+      document.getElementById('entryImage').value = '';
+      document.getElementById('mood').value = '';
+      loadEntries();
+      loadPublic();
+    }
+
+    function loadEntries() {
+      const logs = JSON.parse(localStorage.getItem('logs') || '[]');
+      const filtered = logs.filter(log => log.user === username);
+      const container = document.getElementById('entries');
+      container.innerHTML = '';
+      filtered.reverse().forEach(log => {
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.innerHTML = `
+          ${log.title ? `<h3>${log.title}</h3>` : ''}
+          <p>${log.text}</p>
+          ${log.image ? `<img src="${log.image}">` : ''}
+          ${log.mood ? `<small>Настроение: ${log.mood}</small>` : ''}
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function loadPublic() {
+      const logs = JSON.parse(localStorage.getItem('logs') || '[]');
+      const filtered = logs.filter(log => log.pub);
+      const container = document.getElementById('public');
+      container.innerHTML = '';
+      filtered.reverse().forEach(log => {
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.innerHTML = `
+          <strong>${log.user}</strong> — ${new Date(log.time).toLocaleString()}<br>
+          ${log.title ? `<h3>${log.title}</h3>` : ''}
+          <p>${log.text}</p>
+          ${log.image ? `<img src="${log.image}">` : ''}
+          ${log.mood ? `<small>Настроение: ${log.mood}</small>` : ''}
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+    }
+  </script>
+</body>
+</html>
