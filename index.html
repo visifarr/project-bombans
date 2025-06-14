@@ -1,207 +1,172 @@
-<!DOCTYPE html>
-<html lang="ru">
+<!DOCTYPE html><html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Дневник Настроений</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EchoLink — послание дня</title>
   <style>
+    :root {
+      --main-color: #4f46e5;
+      --rare-color: #facc15;
+      --epic-color: #f472b6;
+      --legendary-color: #22d3ee;
+    }
     body {
-      font-family: sans-serif;
-      background: var(--bg);
-      color: var(--text);
       margin: 0;
       padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #eef2f3, #dfe9f3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #333;
     }
-    :root {
-      --bg: #fff;
-      --text: #111;
-      --accent-color: #0077ff;
-    }
-    body.dark {
-      --bg: #111;
-      --text: #eee;
-      --accent-color: #00ccff;
-    }
-    header, footer {
-      padding: 1em;
-      background: var(--accent-color);
-      color: white;
+    .container {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
       text-align: center;
+      max-width: 500px;
+      width: 90%;
+      position: relative;
     }
-    main {
-      padding: 1em;
-      max-width: 600px;
-      margin: auto;
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
     }
-    .log-entry {
-      background: rgba(255, 255, 255, 0.1);
-      border-left: 4px solid var(--accent-color);
-      padding: 0.5em;
-      margin: 0.5em 0;
+    .btn {
+      padding: 0.8rem 1.2rem;
+      background: var(--main-color);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-top: 1rem;
     }
-    input, textarea, button, select {
-      width: 100%;
-      padding: 0.5em;
-      margin: 0.5em 0;
+    .btn:hover {
+      background: #4338ca;
     }
-    img {
-      max-width: 100%;
-      border-radius: 8px;
+    .message {
+      margin-top: 1.5rem;
+      font-size: 1.2rem;
+      line-height: 1.5;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeIn 1s forwards;
+    }
+    .rare { border-left: 4px solid var(--rare-color); padding-left: 10px; }
+    .epic { border-left: 4px solid var(--epic-color); padding-left: 10px; }
+    .legendary { border-left: 4px solid var(--legendary-color); padding-left: 10px; }
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .info {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 0.5rem;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>📘 Дневник Настроений Онлайн</h1>
-    <button onclick="toggleTheme()">Сменить тему</button>
-  </header>
-  <main>
-    <div id="login">
-      <input id="username" placeholder="Имя пользователя" />
-      <button onclick="login()">Войти</button>
-    </div>
-    <div id="app" style="display: none">
-      <h2>Добро пожаловать, <span id="userDisplay"></span></h2>
-      <p id="quote"></p>
-      <input id="entryTitle" placeholder="Заголовок работы (необязательно)" />
-      <input id="entryImage" placeholder="Ссылка на изображение (необязательно)" />
-      <select id="mood">
-        <option value="">Настроение (необязательно)</option>
-        <option>😊 Радость</option>
-        <option>😢 Грусть</option>
-        <option>😡 Злость</option>
-        <option>😌 Спокойствие</option>
-        <option>😶 Отрешённость</option>
-      </select>
-      <textarea id="entry" placeholder="Поделись своими мыслями..."></textarea>
-      <label><input type="checkbox" id="publish" /> Показать другим</label>
-      <button onclick="saveEntry()">Сохранить</button>
-      <div id="entries"></div>
-    </div>
-    <hr />
-    <h2>🌐 Публичные записи</h2>
-    <div id="public"></div>
-  </main>
-  <footer>
-    &copy; 2025 — Твой безопасный уголок
-  </footer>
-  <script>
-    const quotes = [
-      'Каждый день — это новая страница твоей истории.',
-      'Пиши так, будто никто не читает. Это и есть свобода.',
-      'Ты важен. То, что ты чувствуешь — важно.',
-      'Иногда простая мысль может изменить всё.',
-      'Будь честен с собой — здесь тебе можно всё.',
-      'Твоя искренность — твоя сила.',
-      'Записывая мысли, ты делаешь их настоящими.',
-      'Слова лечат. Не бойся писать правду.',
-      'Этот дневник — твоя территория безопасности.',
-      'Ты не обязан быть идеальным, чтобы быть услышанным.',
-      'Даже тишина может стать содержанием.',
-      'Здесь не нужно притворяться — только быть.',
-      'Ты не один. Ты есть у себя.',
-      'Самые глубокие разговоры происходят с самим собой.',
-      'Дневник — это зеркало души.',
-      'Невысказанное — не значит несуществующее.',
-      'Твои чувства — это не слабость, а доказательство жизни.',
-      'Порой достаточно просто записать, чтобы стало легче.',
-      'Слова могут быть хрупкими. Но и сильными тоже.',
-      'Иногда лучший собеседник — это страница.',
-      'Прошлое нельзя изменить, но можно переосмыслить.',
-      'Мысли, которые записаны, теряют власть над тобой.',
-      'Уважай себя настолько, чтобы выговариваться.',
-      'Этот текст — путь к внутреннему покою.',
-      'Слово за словом — и ты уже дальше, чем был.',
-      'Ты имеешь право быть услышанным. Даже самим собой.',
-      'Заметки о себе — это инвестиции в осознанность.',
-      'Ты строишь мост между прошлым и настоящим.',
-      'Честность здесь — твоя суперспособность.',
-      'Каждая запись — это шаг к пониманию себя.'
+  <div class="container">
+    <h1>🔮 EchoLink</h1>
+    <div id="msg" class="message"></div>
+    <button class="btn" onclick="reveal()" id="btn">Получить послание</button>
+    <div class="info" id="info"></div>
+  </div>  <script>
+    const messages = [
+      { text: "🌌 Легенда: Существуют послания, которые меняют всё. Это одно из них.", rarity: "legendary" },
+      { text: "🌌 Внутри пустоты — структура будущего.", rarity: "legendary" },
+      { text: "🌌 Мы встречались раньше — но не в этой жизни.", rarity: "legendary" },
+      { text: "🌌 Ты осознан даже во сне. Это редкость.", rarity: "legendary" },
+      { text: "🌌 За пределами слов ты всё ещё есть.", rarity: "legendary" },
+      { text: "💎 Эхо из сна: продолжай, даже если никто не видит.", rarity: "epic" },
+      { text: "💎 Сопротивление сегодня — сила завтра.", rarity: "epic" },
+      { text: "💎 Если бы звёзды писали тебе письма, они звучали бы так.", rarity: "epic" },
+      { text: "💎 Не каждый день рождает понимание. Но этот может.", rarity: "epic" },
+      { text: "💎 Иногда всё, что нужно — это заметить.", rarity: "epic" },
+      { text: "⭐ Один день — один шанс. Используй.", rarity: "rare" },
+      { text: "⭐ Ты на шаг ближе, чем думаешь.", rarity: "rare" },
+      { text: "⭐ То, что ты ищешь, ищет тебя.", rarity: "rare" },
+      { text: "⭐ За простыми словами может стоять целая Вселенная.", rarity: "rare" },
+      { text: "⭐ Ты не потерян — ты в пути.", rarity: "rare" },
+      { text: "⭐ Не каждое молчание — пустота.", rarity: "rare" },
+      { text: "⭐ Ты не обязан быть продуктивным, чтобы быть ценным.", rarity: "rare" },
+      { text: "⭐ Самое важное часто происходит в тишине.", rarity: "rare" },
+      { text: "⭐ Всё, что ты чувствуешь — уместно.", rarity: "rare" },
+      { text: "⭐ Усталость — не слабость. Это сигнал.", rarity: "rare" },
+      { text: "Тишина — тоже ответ." },
+      { text: "Ты не случайно здесь." },
+      { text: "Сегодня не повторится." },
+      { text: "Кто ищет — тот находит, но не сразу." },
+      { text: "Покой внутри — сила снаружи." },
+      { text: "След, который ты оставляешь, виден только тебе." },
+      { text: "⌛ Всё, что ты читаешь — останется только с тобой." },
+      { text: "Остановись. Посмотри на облака. Они тоже идут своим путём." },
+      { text: "Не ты выбираешь послание — оно тебя." },
+      { text: "Когда ты готов — появляется ответ." },
+      { text: "Не пытайся сохранить всё. Иногда важно отпустить." },
+      { text: "Каждая минута — как портал. Пройди через неё осознанно." },
+      { text: "Прогресс — не вверх, а внутрь." },
+      { text: "Если сегодня ты не услышал себя — попробуй завтра." },
+      { text: "Ты сам себе случайность и закономерность одновременно." },
+      { text: "Не ищи истину — ищи вопрос, который стоит задать." },
+      { text: "Сомнение — это приглашение к глубине." },
+      { text: "Ждать — это тоже действие." },
+      { text: "Пауза — мост между событиями." },
+      { text: "Всё пройдёт. И это — тоже." },
+      { text: "Ты не обязан быть лучше, чем вчера. Достаточно быть собой." },
+      { text: "Мир вокруг отражает то, что ты выбираешь замечать." },
+      { text: "Ты можешь быть одновременно сильным и чувствительным." },
+      { text: "Иногда путь — это просто оставаться живым." },
+      { text: "Ты не должен спешить. Важное не уходит." },
+      { text: "Вопрос без ответа — не всегда проблема. Иногда это поэзия." },
+      { text: "Радость не кричит. Она просто есть." },
+      { text: "Не все дороги ведут к цели. Некоторые — к себе." },
+      { text: "Когда ты дышишь — ты уже живой. Этого достаточно." },
+      { text: "Пусть этот день будет просто... твоим." }
     ];
 
-    let username = '';
+    const shownToday = localStorage.getItem('echolink_shown');
+    const today = new Date().toDateString();
 
-    function login() {
-      username = document.getElementById('username').value.trim();
-      if (username) {
-        document.getElementById('userDisplay').textContent = username;
-        document.getElementById('login').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        document.getElementById('quote').textContent =
-          quotes[Math.floor(Math.random() * quotes.length)];
-        loadEntries();
-        loadPublic();
+    if (shownToday === today) {
+      document.getElementById('btn').disabled = true;
+      document.getElementById('btn').innerText = "Уже получено сегодня";
+      document.getElementById('msg').innerHTML = localStorage.getItem('echolink_msg');
+      document.getElementById('msg').classList.add(localStorage.getItem('echolink_rarity'));
+      document.getElementById('info').innerText = `Дата: ${today}`;
+    }
+
+    function reveal() {
+      const roll = Math.random();
+      let rarity = "";
+      let filtered = messages.filter(m => !m.rarity);
+      if (roll < 0.02) {
+        rarity = "legendary";
+        filtered = messages.filter(m => m.rarity === "legendary");
+      } else if (roll < 0.08) {
+        rarity = "epic";
+        filtered = messages.filter(m => m.rarity === "epic");
+      } else if (roll < 0.20) {
+        rarity = "rare";
+        filtered = messages.filter(m => m.rarity === "rare");
       }
+      const msg = filtered[Math.floor(Math.random() * filtered.length)];
+      document.getElementById('msg').innerHTML = msg.text;
+      document.getElementById('msg').className = 'message ' + (msg.rarity || '');
+      localStorage.setItem('echolink_msg', msg.text);
+      localStorage.setItem('echolink_shown', today);
+      localStorage.setItem('echolink_rarity', msg.rarity || '');
+      document.getElementById('btn').disabled = true;
+      document.getElementById('btn').innerText = "Уже получено сегодня";
+      document.getElementById('info').innerText = `Дата: ${today}`;
     }
-
-    function saveEntry() {
-      const text = document.getElementById('entry').value.trim();
-      const pub = document.getElementById('publish').checked;
-      const title = document.getElementById('entryTitle').value.trim();
-      const image = document.getElementById('entryImage').value.trim();
-      const mood = document.getElementById('mood').value;
-      if (!text) return;
-      const log = {
-        user: username,
-        text,
-        pub,
-        title,
-        image,
-        mood,
-        time: new Date().toISOString()
-      };
-      const logs = JSON.parse(localStorage.getItem('logs') || '[]');
-      logs.push(log);
-      localStorage.setItem('logs', JSON.stringify(logs));
-      document.getElementById('entry').value = '';
-      document.getElementById('publish').checked = false;
-      document.getElementById('entryTitle').value = '';
-      document.getElementById('entryImage').value = '';
-      document.getElementById('mood').value = '';
-      loadEntries();
-      loadPublic();
-    }
-
-    function loadEntries() {
-      const logs = JSON.parse(localStorage.getItem('logs') || '[]');
-      const filtered = logs.filter(log => log.user === username);
-      const container = document.getElementById('entries');
-      container.innerHTML = '';
-      filtered.reverse().forEach(log => {
-        const div = document.createElement('div');
-        div.className = 'log-entry';
-        div.innerHTML = `
-          ${log.title ? `<h3>${log.title}</h3>` : ''}
-          <p>${log.text}</p>
-          ${log.image ? `<img src="${log.image}">` : ''}
-          ${log.mood ? `<small>Настроение: ${log.mood}</small>` : ''}
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function loadPublic() {
-      const logs = JSON.parse(localStorage.getItem('logs') || '[]');
-      const filtered = logs.filter(log => log.pub);
-      const container = document.getElementById('public');
-      container.innerHTML = '';
-      filtered.reverse().forEach(log => {
-        const div = document.createElement('div');
-        div.className = 'log-entry';
-        div.innerHTML = `
-          <strong>${log.user}</strong> — ${new Date(log.time).toLocaleString()}<br>
-          ${log.title ? `<h3>${log.title}</h3>` : ''}
-          <p>${log.text}</p>
-          ${log.image ? `<img src="${log.image}">` : ''}
-          ${log.mood ? `<small>Настроение: ${log.mood}</small>` : ''}
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function toggleTheme() {
-      document.body.classList.toggle('dark');
-    }
-  </script>
-</body>
+  </script></body>
 </html>
